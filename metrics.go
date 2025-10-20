@@ -46,7 +46,8 @@ func NewMetrics(logger *zap.Logger) *Metrics {
 
 	return &Metrics{
 		Devices: NewDeviceMetrics(logger),
-		Network: NewNetworkMetrics(logger),
+		// Fritz!OS 8 dosen't support network metrics anymore
+		//Network: NewNetworkMetrics(logger),
 	}
 }
 
@@ -190,10 +191,10 @@ func (m *Metrics) Register(r prometheus.Registerer) error {
 	if err := m.Devices.Register(r); err != nil {
 		return err
 	}
-
-	if err := m.Network.Register(r); err != nil {
-		return err
-	}
+	// Fritz!OS 8 dosen't support network metrics anymore
+	//	if err := m.Network.Register(r); err != nil {
+	//		return err
+	//	}
 
 	return nil
 }

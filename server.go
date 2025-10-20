@@ -114,7 +114,8 @@ func (s *Server) CollectMetrics(ctx context.Context) {
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 	go s.deviceMetricsLoop(ctx, wg, s.Config.DeviceMonitoringInterval)
-	go s.networkMetricsLoop(ctx, wg, s.Config.NetworkMonitoringInterval)
+	// Fritz!OS 8 dosen't support network metrics anymore
+	//go s.networkMetricsLoop(ctx, wg, s.Config.NetworkMonitoringInterval)
 	wg.Wait()
 }
 

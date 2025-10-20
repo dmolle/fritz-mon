@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
+	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
@@ -18,6 +20,8 @@ func main() {
 		runSetup()
 		return
 	}
+	// Fritzbox has alway invaild TLS certifcates => ignore bad TLS certificates
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	logger := newLogger(*verbose)
 	defer func() { _ = logger.Sync() }()
