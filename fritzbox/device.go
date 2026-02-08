@@ -110,6 +110,16 @@ func (i TemperatureInfo) GetCelsius() float64 {
 	return f / 10
 }
 
+func (d *Device) GetMeasured() float64 {
+	f, _ := strconv.ParseFloat(d.Thermostat.Measured, 64)
+	return f
+}
+
+func (d *Device) GetGoal() float64 {
+	f, _ := strconv.ParseFloat(d.Thermostat.Goal, 64)
+	return f
+}
+
 func (d *Device) CanMeasurePower() bool {
 	return d.Has(PowerSensor)
 }
@@ -120,6 +130,19 @@ func (d *Device) CanMeasureTemperature() bool {
 
 func (d *Device) IsSwitch() bool {
 	return d.Has(StateSwitch)
+}
+
+func (d *Device) IsHeatControl() bool {
+	return d.Has(HeatControl)
+}
+func (d *Device) IsWindowOpen() bool {
+	return d.Thermostat.WindowOpen == "1"
+}
+func (d *Device) IsDeviceLocked() bool {
+	return d.Thermostat.DeviceLock == "1"
+}
+func (d *Device) IsBatteryLow() bool {
+	return d.Thermostat.BatteryLow == "1"
 }
 
 // Has checks the passed capabilities and returns true iff the device supports

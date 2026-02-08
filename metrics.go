@@ -16,12 +16,17 @@ type Metrics struct {
 }
 
 type DeviceMetrics struct {
-	IsConnected *prometheus.GaugeVec
-	IsPoweredOn *prometheus.GaugeVec
-	Temperature *prometheus.GaugeVec
-	Power       *prometheus.GaugeVec
-	Voltage     *prometheus.GaugeVec
-	Energy      *prometheus.GaugeVec
+	IsConnected    *prometheus.GaugeVec
+	IsBatteryLow   *prometheus.GaugeVec
+	IsDeviceLocked *prometheus.GaugeVec
+	IsWindowOpen   *prometheus.GaugeVec
+	IsPoweredOn    *prometheus.GaugeVec
+	Temperature    *prometheus.GaugeVec
+	Power          *prometheus.GaugeVec
+	Voltage        *prometheus.GaugeVec
+	Energy         *prometheus.GaugeVec
+	Measured       *prometheus.GaugeVec
+	Goal           *prometheus.GaugeVec
 
 	logger *zap.Logger
 }
@@ -63,6 +68,33 @@ func NewDeviceMetrics(logger *zap.Logger) *DeviceMetrics {
 				Subsystem: subsystem,
 				Name:      "device_connected_bool",
 				Help:      "Either 0 or 1 to indicate if the device is currently connected to the FRITZ!Box.",
+			},
+			labelNames,
+		),
+		IsBatteryLow: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "device_battery_bool",
+				Help:      "Either 0 or 1 to indicate if the battery is low",
+			},
+			labelNames,
+		),
+		IsDeviceLocked: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "device_locked_bool",
+				Help:      "Switch locked (device defined)",
+			},
+			labelNames,
+		),
+		IsWindowOpen: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "device_window_open_bool",
+				Help:      "1 if detected an open window (usually turns off heating), 0 if not.",
 			},
 			labelNames,
 		),
@@ -108,6 +140,24 @@ func NewDeviceMetrics(logger *zap.Logger) *DeviceMetrics {
 				Subsystem: subsystem,
 				Name:      "energy_watthours_total",
 				Help:      "Accumulated power consumption in Watt hours since initial setup.",
+			},
+			labelNames,
+		),
+		Measured: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "thermostat_measured",
+				Help:      "Measured ventil position",
+			},
+			labelNames,
+		),
+		Goal: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "thermostat_goal",
+				Help:      "Desired ventil position",
 			},
 			labelNames,
 		),
@@ -202,11 +252,16 @@ func (m *Metrics) Register(r prometheus.Registerer) error {
 func (m *DeviceMetrics) Register(r prometheus.Registerer) error {
 	metrics := []prometheus.Collector{
 		m.IsPoweredOn,
+		m.IsBatteryLow,
+		m.IsDeviceLocked,
+		m.IsWindowOpen,
 		m.IsConnected,
 		m.Temperature,
 		m.Power,
 		m.Voltage,
 		m.Energy,
+		m.Measured,
+		m.Goal,
 	}
 
 	for _, metric := range metrics {
@@ -282,6 +337,28 @@ func (m *DeviceMetrics) collectDeviceMetrics(device fritzbox.Device) {
 		isPowered := prometheusBool(device.Switch.IsPoweredOn())
 		m.IsPoweredOn.WithLabelValues(device.Name).Set(isPowered)
 		collectedMetrics["is_powered"] = isPowered
+	}
+	if device.IsHeatControl() {
+		isBatteryLow := prometheusBool(device.IsBatteryLow())
+		m.IsBatteryLow.WithLabelValues(device.Name).Set(isBatteryLow)
+		collectedMetrics["is_battery_low"] = isBatteryLow
+
+		measured := device.GetMeasured()
+		m.Measured.WithLabelValues(device.Name).Set(measured)
+		collectedMetrics["measured"] = measured
+
+		goal := device.GetGoal()
+		m.Goal.WithLabelValues(device.Name).Set(goal)
+		collectedMetrics["goal"] = goal
+
+		isDeviceLocked := prometheusBool(device.IsDeviceLocked())
+		m.IsDeviceLocked.WithLabelValues(device.Name).Set(isDeviceLocked)
+		collectedMetrics["is_device_locked"] = isDeviceLocked
+
+		isWindowOpen := prometheusBool(device.IsWindowOpen())
+		m.IsWindowOpen.WithLabelValues(device.Name).Set(isWindowOpen)
+		collectedMetrics["is_window_open"] = isWindowOpen
+
 	}
 
 	logFields := metricsToLogFields(device.Name, collectedMetrics)
