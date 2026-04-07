@@ -2,6 +2,7 @@
 
 ![Build Status](https://github.com/fgrosse/fritz-mon/workflows/Build/badge.svg)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](https://github.com/fgrosse/fritz-mon/blob/master/LICENSE)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdmolle%2Ffritz-mon.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdmolle%2Ffritz-mon?ref=badge_shield)
 
 Export various metrics from the AVM FRITZ!Box API as Prometheus metric.
 
@@ -91,3 +92,6 @@ There are also some additional systemd unit files to setup Grafana and Prometheu
 ### License
 
 © Friedrich Große 2020, distributed under [BSD-3-Clause License](LICENSE).
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdmolle%2Ffritz-mon.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdmolle%2Ffritz-mon?ref=badge_large)
